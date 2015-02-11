@@ -39,7 +39,10 @@ class Commutator(object):
     def permutations(self):
         perms = []
         x, y, z = self.x, self.y, self.z
-        y_x_z_sign = -(-1) ** (x.parity * z.parity)
+
+        perms.append(Commutator(x, y, z))
+
+        y_x_z_sign = -(-1) ** (x.parity * y.parity)
         perms.append(Commutator(y, x, z, sign=y_x_z_sign))
 
         x_z_y_sign = -(-1) ** (y.parity * z.parity)
@@ -48,7 +51,7 @@ class Commutator(object):
         z_y_x_sign = -(-1) ** (
             x.parity * y.parity + x.parity * z.parity + y.parity * z.parity
         )
-        perms.append(Commutator(x, y, x, sign=z_y_x_sign))
+        perms.append(Commutator(z, y, x, sign=z_y_x_sign))
 
         y_z_x_sign = (-1) ** (x.parity * z.parity + y.parity * x.parity)
         perms.append(Commutator(y, z, x, sign=y_z_x_sign))

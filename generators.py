@@ -76,8 +76,8 @@ def create_equations(commutators):
     trim = lambda s: s.replace('_', '')
     equations = []
     for c in commutators:
-        if c.zero:
-            continue
+        # if c.zero:
+        #     continue
         for b1, b2 in itertools.combinations_with_replacement(basis, 2):
             l = jacobi.left(b1, b2, c.x, c.y, c.z)
             r = jacobi.right(b1, b2, c.x, c.y, c.z)

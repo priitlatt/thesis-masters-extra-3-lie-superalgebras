@@ -22,3 +22,10 @@ def run_script(filename):
     print 'running  "%s"' % ' '.join(cmd_list)
     Popen(cmd_list).wait()
     print 'done'
+
+
+def parse_result(result_file):
+    result = ''
+    with open(result_file) as f:
+        result = f.read()
+    print result

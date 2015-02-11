@@ -77,6 +77,7 @@ class Jacobi(object):
 
         _c, _c_s = Commutator(x, y, z).flip()
         basis = self.evens if _c.even else self.odds
+        # TODO: fix it
         c = [Commutator(u, v, b).flip() for b in basis]
         for m1, t1 in zip(self.get(_c), c):
             c, s = t1
