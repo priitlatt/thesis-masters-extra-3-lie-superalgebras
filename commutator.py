@@ -29,12 +29,10 @@ class Commutator(object):
     def parity(self):
         return sum([v.parity for v in self.all]) % 2
 
-    @property
-    def even(self):
+    def is_even(self):
         return True if self.parity == 0 else False
 
-    @property
-    def odd(self):
+    def is_odd(self):
         return True if self.parity == 1 else False
 
     def permutations(self):
@@ -62,12 +60,8 @@ class Commutator(object):
 
         return perms
 
-    @property
-    def zero(self):
-        def compare_elements(other):
-            return self.x == other.x and \
-                self.y == other.y and \
-                self.z == other.z
+    def is_zero(self):
+        compare_elements = lambda o: all((self.x == o.x, self.y == o.y, self.z == o.z))
 
         for other in self.permutations():
             if self.sign != other.sign and compare_elements(other):
@@ -79,17 +73,17 @@ class Commutator(object):
 
     @property
     def value(self, evens, odds):
-        if self.zero:
+        if self.is_zero():
             return []
-        basis_els = evens if self.even else odds
+        basis_els = evens if self.is_even() else odds
         index = self._sc_index()
         ans_list = ["c(%s; %s)%s" % (index, b.index, b) for b in basis_els]
         return ' + '.join(ans_list)
 
     def to_vectors(self, evens, odds):
-        if self.zero:
+        if self.is_zero():
             return []
-        basis_els = evens if self.even else odds
+        basis_els = evens if self.is_even() else odds
         index = self._sc_index()
         vectors = []
         for b in basis_els:
@@ -129,3 +123,6 @@ class Commutator(object):
 
     def __str__(self):
         return "[%s, %s, %s]" % (self.x, self.y, self.z)
+
+    def __repr__(self):
+        return str(self)

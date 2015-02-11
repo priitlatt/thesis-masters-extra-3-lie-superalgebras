@@ -1,12 +1,20 @@
 class Vector(object):
 
-    def __init__(self, repr, k='', sign=True):
+    def __init__(self, value, k='', sign=True):
         """
-        :type repr : str
+        :type value : str
         :type k: str
         """
-        self.value = repr
+        self.value = value
         self.k = k
+        self.sign = sign
+
+    def __str__(self):
+        sign = "" if self.sign else "-"
+        return "%s%s%s" % (sign, self.k, self.value)
+
+    def __repr__(self):
+        return str(self)
 
     def set_k(self, k):
         self.k = k

@@ -21,10 +21,10 @@ odd_count = 0
 commutator_map = dict()
 
 multipliers = []
-evens = None
-odds = None
-basis = None
-commutators = None
+evens = tuple()
+odds = tuple()
+basis = tuple()
+commutators = tuple()
 
 tex_output = []
 
@@ -36,39 +36,38 @@ def init_basis_and_commutators():
     odds = tuple([Vec('f%d' % (i + 1)) for i in range(ODD_COUNT)])
     basis = evens + odds
 
-    commutators = Commutator.get_commutators(basis)
+    commutators = tuple(Commutator.get_commutators(basis))
     for c in commutators:
         multipliers = add(c)
         if not any(multipliers):
-             print(c, '=', 0)
+            print(c, '=', 0)
         else:
-            multipliers += [mult for mult in multipliers if mult]
-            basis = evens if c.even else odds
-            o = str(c) + ' = ' + ' + '.join(("%s %s" % (m, b) for m, b in zip(multipliers, basis) if m))
+            multipliers = filter(None, multipliers)
+            vectors = evens if c.is_even() else odds
+            o = str(c) + ' = ' + ' + '.join(("%s %s" % (m, b) for m, b in zip(multipliers, vectors) if m))
             print(o)
             tex_output.append(r'\item $%s$' % o)
     print('\n------------------------------\n')
-    commutators = tuple(commutators)
 
 
 def add(commutator):
     global odd_count, even_count
-    length = len(odds) if commutator.odd else len(evens)
-    if commutator.zero:
-        multipliers = ['' for _ in range(length)]
-    elif commutator.odd:
-        multipliers = ["m_%d" % (odd_count + i+1) for i in range(length)]
-        odd_count += len(multipliers)
+    multiplier_count = len(odds) if commutator.is_odd() else len(evens)
+    if commutator.is_zero():
+        multiplier_list = ['' for _ in range(multiplier_count)]
+    elif commutator.is_odd():
+        multiplier_list = ["m_%d" % (odd_count + i+1) for i in range(multiplier_count)]
+        odd_count += len(multiplier_list)
         # odd_count += 1
-        # multipliers = ["m_%d^%d" % (odd_count, i+1) for i in range(length)]
+        # multiplier_list = ["m_%d^%d" % (odd_count, i+1) for i in range(multiplier_count)]
     else:
-        multipliers = ["l_%d" % (even_count + i+1) for i in range(length)]
-        even_count += len(multipliers)
+        multiplier_list = ["l_%d" % (even_count + i+1) for i in range(multiplier_count)]
+        even_count += len(multiplier_list)
         # even_count += 1
-        # multipliers = ["l_%d^%d" % (even_count, i+1) for i in range(length)]
+        # multiplier_list = ["l_%d^%d" % (even_count, i+1) for i in range(multiplier_count)]
     key = commutator.x.value + commutator.y.value + commutator.z.value
-    commutator_map[key] = multipliers
-    return multipliers
+    commutator_map[key] = multiplier_list
+    return multiplier_list
 
 
 def create_equations(commutators):
@@ -121,8 +120,14 @@ def create_equations(commutators):
 init_basis_and_commutators()
 equations = create_equations(commutators)
 
-for i, eq in enumerate(equations):
-    print(i, eq)
+print(evens)
+print(odds)
+print(commutators)
+
+print(commutator_map)
+
+for counter, eq in enumerate(equations):
+    print("%d) %s" % (counter, eq))
 
 # script_file, output_file = mh.create_script(
 #     equations, multipliers, EVEN_COUNT, ODD_COUNT)
