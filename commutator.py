@@ -15,7 +15,6 @@ class Commutator(object):
         self.y = y
         self.z = z
         self.sign = sign
-        self.all = [x, y, z]
         self.values_list = []
 
     def __eq__(self, other):
@@ -30,7 +29,13 @@ class Commutator(object):
         return hash("%s%s%s%s" % (self.sign, self.x, self.y, self.z))
 
     def __str__(self):
-        return "[%s, %s, %s]" % (self.x, self.y, self.z)
+        if self.sign == 1:
+            sign = ""
+        elif self.sign == -1:
+            sign = "-"
+        else:
+            raise RuntimeError("Invalid sign: %s" % self.sign)
+        return "%s[%s, %s, %s]" % (sign, self.x, self.y, self.z)
 
     def __repr__(self):
         return str(self)
@@ -50,40 +55,18 @@ class Commutator(object):
     def set_values_list(self, values_list):
         self.values_list = values_list
 
+    def __abs__(self):
+        return (self.x.parity + self.y.parity + self.z.parity) % 2
+
     @property
     def parity(self):
-        return sum([v.parity for v in self.all]) % 2
+        return abs(self)
 
     def is_even(self):
-        return True if self.parity == 0 else False
+        return self.parity == 0
 
     def is_odd(self):
-        return True if self.parity == 1 else False
-
-    def permutations(self):
-        perms = []
-        x, y, z = self.x, self.y, self.z
-
-        perms.append(Commutator(x, y, z))
-
-        y_x_z_sign = -(-1) ** (x.parity * y.parity)
-        perms.append(Commutator(y, x, z, sign=y_x_z_sign))
-
-        x_z_y_sign = -(-1) ** (y.parity * z.parity)
-        perms.append(Commutator(x, z, y, sign=x_z_y_sign))
-
-        z_y_x_sign = -(-1) ** (
-            x.parity * y.parity + x.parity * z.parity + y.parity * z.parity
-        )
-        perms.append(Commutator(z, y, x, sign=z_y_x_sign))
-
-        y_z_x_sign = (-1) ** (x.parity * z.parity + y.parity * x.parity)
-        perms.append(Commutator(y, z, x, sign=y_z_x_sign))
-
-        z_x_y_sign = (-1) ** (x.parity * z.parity + y.parity * z.parity)
-        perms.append(Commutator(z, x, y, sign=z_x_y_sign))
-
-        return perms
+        return self.parity == 1
 
     def is_zero(self):
         compare_elements = lambda o: all((self.x == o.x, self.y == o.y, self.z == o.z))
@@ -93,29 +76,27 @@ class Commutator(object):
                 return True
         return False
 
-    def _sc_index(self):
-        return ','.join([v.index for v in self.all])
+    def permutations(self):
+        x, y, z = self.x, self.y, self.z
 
-    @property
-    def value(self, evens, odds):
-        if self.is_zero():
-            return []
-        basis_els = evens if self.is_even() else odds
-        index = self._sc_index()
-        ans_list = ["c(%s; %s)%s" % (index, b.index, b) for b in basis_els]
-        return ' + '.join(ans_list)
+        x_y_z = Commutator(x, y, z)
 
-    def to_vectors(self, evens, odds):
-        if self.is_zero():
-            return []
-        basis_els = evens if self.is_even() else odds
-        index = self._sc_index()
-        vectors = []
-        for b in basis_els:
-            k = "c(%s;%s)" % (index, b.index)
-            v = Vec(b.value, k=k)
-            vectors.append(v)
-        return vectors
+        y_x_z_sign = -(-1)**(abs(x) * abs(y))
+        y_x_z = Commutator(y, x, z, sign=y_x_z_sign)
+
+        x_z_y_sign = -(-1)**(abs(y) * abs(z))
+        x_z_y = Commutator(x, z, y, sign=x_z_y_sign)
+
+        z_y_x_sign = -(-1)**(abs(x)*abs(y) + abs(x)*abs(z) + abs(y)*abs(z))
+        z_y_x = Commutator(z, y, x, sign=z_y_x_sign)
+
+        y_z_x_sign = (-1)**(abs(x)*abs(y) + abs(x)*abs(z))
+        y_z_x = Commutator(y, z, x, sign=y_z_x_sign)
+
+        z_x_y_sign = (-1)**(abs(x)*abs(z) + abs(y)*abs(z))
+        z_x_y = Commutator(z, x, y, sign=z_x_y_sign)
+
+        return {x_y_z, y_x_z, x_z_y, z_y_x, y_z_x, z_x_y}
 
     def flip(self):
         x, y, z = self.x.value, self.y.value, self.z.value
@@ -142,6 +123,6 @@ class Commutator(object):
             sign = (-1) ** (xz + yz)
             _x, _y, _z = Vec(self.z.value), Vec(self.x.value), Vec(self.y.value)
         else:
-            raise RuntimeError("Invalid flip: {}".format(self))
+            raise RuntimeError("Invalid flip for: {}".format(self))
 
         return Commutator(_x, _y, _z), sign

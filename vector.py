@@ -16,6 +16,13 @@ class Vector(object):
     def __repr__(self):
         return str(self)
 
+    def __abs__(self):
+        return 1 if self._is_odd() else 0
+
+    @property
+    def parity(self):
+        return abs(self)
+
     def set_k(self, k):
         self.k = k
 
@@ -24,10 +31,6 @@ class Vector(object):
 
     def _is_even(self):
         return not self._is_odd()
-
-    @property
-    def parity(self):
-        return 1 if self._is_odd() else 0
 
     @property
     def even(self):

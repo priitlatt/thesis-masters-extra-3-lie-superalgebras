@@ -60,9 +60,9 @@ def create_equations():
     equations = []
     for c in commutators:
         for b1, b2 in itertools.combinations_with_replacement(basis, 2):
-            print(b1)
-            print(b2)
-            print()
+            # print(b1)
+            # print(b2)
+            # print()
             continue
             l = jacobi.left(b1, b2, c.x, c.y, c.z)
             r = jacobi.right(b1, b2, c.x, c.y, c.z)
@@ -109,6 +109,8 @@ def main():
 
     for commutator in commutator_map:
         print(commutator.as_string())
+        print(commutator.permutations())
+        print()
 
     for counter, eq in enumerate(equations_list):
         print("%d) %s" % (counter, eq))
