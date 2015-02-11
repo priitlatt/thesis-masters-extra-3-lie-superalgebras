@@ -103,16 +103,21 @@ def create_equations():
     return equations
 
 
-init_basis_and_commutators()
-equations_list = create_equations()
+def main():
+    init_basis_and_commutators()
+    equations_list = create_equations()
 
-for commutator in commutator_map:
-    print(commutator.as_string())
+    for commutator in commutator_map:
+        print(commutator.as_string())
 
-for counter, eq in enumerate(equations_list):
-    print("%d) %s" % (counter, eq))
+    for counter, eq in enumerate(equations_list):
+        print("%d) %s" % (counter, eq))
 
-# script_file, output_file = mh.create_script(
-#     equations, multipliers, EVEN_COUNT, ODD_COUNT)
-# create_tex(tex_output, EVEN_COUNT, ODD_COUNT)
-# mh.run_script(script_file)
+    # script_file, output_file = mh.create_script(
+    #     equations, multipliers, EVEN_COUNT, ODD_COUNT)
+    # create_tex(tex_output, EVEN_COUNT, ODD_COUNT)
+    # mh.run_script(script_file)
+
+
+if __name__ == '__main__':
+    main()
