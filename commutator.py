@@ -100,29 +100,55 @@ class Commutator(object):
 
     def flip(self):
         x, y, z = self.x.value, self.y.value, self.z.value
-        _x, _y, _z = self.x, self.y, self.z
-        xy = self.x.parity * self.y.parity
-        xz = self.x.parity * self.z.parity
-        yz = self.y.parity * self.z.parity
+        _x, _y, _z = self.x.copy(), self.y.copy(), self.z.copy()
+        xy = abs(self.x)*abs(self.y)
+        xz = abs(self.x)*abs(self.z)
+        yz = abs(self.y)*abs(self.z)
         sign = 1
         if x <= y <= z:
             pass
         elif y <= x <= z:
             sign = -(-1) ** xy
-            _x, _y = Vec(self.y.value), Vec(self.x.value)
+            _x, _y = _y, _x
         elif x <= z <= y:
             sign = -(-1) ** yz
-            _y, _z = Vec(self.z.value), Vec(self.y.value)
+            _y, _z = _z, _y
         elif z <= y <= x:
             sign = -(-1) ** (xy + xz + yz)
-            _x, _z = Vec(self.z.value), Vec(self.x.value)
+            _x, _z = _z, _x
         elif y <= z <= x:
             sign = (-1) ** (xz + xy)
-            _x, _y, _z = Vec(self.y.value), Vec(self.z.value), Vec(self.x.value)
+            _x, _y, _z = _y, _z, _x
         elif z <= x <= y:
             sign = (-1) ** (xz + yz)
-            _x, _y, _z = Vec(self.z.value), Vec(self.x.value), Vec(self.y.value)
+            _x, _y, _z = _z, _x, _y
         else:
             raise RuntimeError("Invalid flip for: {}".format(self))
 
         return Commutator(_x, _y, _z), sign
+
+
+def _test_flip():
+    l1, l2, l3, l4, l5, l6, l7, l8, l9, l10 = [], [], [], [], [], [], [], [], [], []
+    for a, b, c in itertools.permutations([1, 2, 3]):
+        l1.append((Vec("e%d" % a), Vec("e%d" % b), Vec("e%d" % c)))
+        l2.append((Vec("f%d" % a), Vec("f%d" % b), Vec("f%d" % c)))
+        l3.append((Vec("e%d" % a), Vec("f%d" % b), Vec("f%d" % c)))
+        l4.append((Vec("e%d" % a), Vec("e%d" % b), Vec("f%d" % c)))
+        l5.append((Vec("e%d" % a), Vec("f%d" % b), Vec("f%d" % c)))
+        l6.append((Vec("e%d" % a), Vec("e%d" % b), Vec("f%d" % c)))
+        l7.append((Vec("f%d" % a), Vec("e%d" % b), Vec("e%d" % c)))
+        l8.append((Vec("f%d" % a), Vec("f%d" % b), Vec("e%d" % c)))
+        l9.append((Vec("f%d" % a), Vec("e%d" % b), Vec("f%d" % c)))
+        l10.append((Vec("f%d" % a), Vec("f%d" % b), Vec("f%d" % c)))
+    for i, l in enumerate([l1, l2, l3, l4, l5, l6, l7, l8, l9, l10]):
+        print("l%d:" % (i+1))
+        for v1, v2, v3 in l:
+            c = Commutator(v1, v2, v3)
+            flipped, sign = c.flip()
+            s = "+" if sign > 0 else "-"
+            print("%s  ->  %s%s" % (c, s, flipped))
+        print()
+
+if __name__ == '__main__':
+    _test_flip()

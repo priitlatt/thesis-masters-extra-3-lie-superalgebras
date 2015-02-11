@@ -19,6 +19,9 @@ class Vector(object):
     def __abs__(self):
         return 1 if self._is_odd() else 0
 
+    def copy(self):
+        return Vector(self.value, self.k, self.sign)
+
     @property
     def parity(self):
         return abs(self)
