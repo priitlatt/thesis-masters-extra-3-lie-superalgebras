@@ -1,17 +1,19 @@
 class Vector(object):
 
-    def __init__(self, value, k='', sign=True):
+    def __init__(self, value, ms=None, sign=1):
         """
         :type value : str
-        :type k: str
+        :type ms: [str]
+        :type sign: int
         """
         self.value = value
-        self.k = k
+        self.ms = [m for m in ms] if ms else []
         self.sign = sign
 
     def __str__(self):
-        sign = "" if self.sign else "-"
-        return "%s%s%s" % (sign, self.k, self.value)
+        sign = "" if self.sign == 1 else "-"
+        ms = ''.join(self.ms)
+        return "%s%s%s" % (sign, ms, self.value)
 
     def __repr__(self):
         return str(self)
@@ -20,14 +22,11 @@ class Vector(object):
         return 1 if self._is_odd() else 0
 
     def copy(self):
-        return Vector(self.value, self.k, self.sign)
+        return Vector(self.value, self.ms, self.sign)
 
     @property
     def parity(self):
         return abs(self)
-
-    def set_k(self, k):
-        self.k = k
 
     def _is_odd(self):
         return True if self.value[0] == 'f' else False
@@ -43,29 +42,29 @@ class Vector(object):
     def odd(self):
         return self._is_odd()
 
-    def tex_k(self):
-        if not self.k:
-            return '+'
-        s = ''
-        minus_count = 0
-        for k in self.k.split('*'):
-            if k.startswith('-'):
-                minus_count += 1
-                k = k[1:]
-            k = k.replace('c', '').replace('(', '').replace(')', '')
-            sup_sup = k.split(';')
-            sub, sup = sup_sup[0], sup_sup[1]
-            subs = "".join(sub.split(','))
-            s += 'c_{%s}^{%s}' % (subs, sup)
+    # def tex_k(self):
+    #     if not self.k:
+    #         return '+'
+    #     s = ''
+    #     minus_count = 0
+    #     for k in self.k.split('*'):
+    #         if k.startswith('-'):
+    #             minus_count += 1
+    #             k = k[1:]
+    #         k = k.replace('c', '').replace('(', '').replace(')', '')
+    #         sup_sup = k.split(';')
+    #         sub, sup = sup_sup[0], sup_sup[1]
+    #         subs = "".join(sub.split(','))
+    #         s += 'c_{%s}^{%s}' % (subs, sup)
+    #
+    #     if minus_count % 2 == 1:
+    #         return '- ' + s
+    #     else:
+    #         return '+ ' + s
 
-        if minus_count % 2 == 1:
-            return '- ' + s
-        else:
-            return '+ ' + s
-
-    @property
-    def tex(self):
-        return "%s %s_{%s}" % (self.tex_k(), self.value[0], self.tex_index())
+    # @property
+    # def tex(self):
+    #     return "%s %s_{%s}" % (self.tex_k(), self.value[0], self.tex_index())
 
     @property
     def index(self):
@@ -81,9 +80,13 @@ class Vector(object):
             return "%s'" % self.value[1:]
 
     def __str__(self):
-        if self.k:
-            return "%s*%s" % (self.k, self.value)
-        return self.value[0] + '_' + self.value[1:]
+        s = "+" if self.sign == 1 else "-"
+        if self.ms:
+            ms = ''.join(sorted(self.ms))
+            s += "%s*" % ms
+        return "%s%s_%s" % (s, self.value[0], self.value[1:])
 
     def __eq__(self, other):
-        return self.value == other.value and self.k == other.k
+        if not isinstance(other, Vector):
+            raise TypeError("Invalid type for comparison: %s" % type(other))
+        return all((self.value == other.value, self.ms == other.ms, self.sign == other.sign))

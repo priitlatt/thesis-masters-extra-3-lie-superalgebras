@@ -1,4 +1,5 @@
 from commutator import Commutator
+from vector import Vector
 
 
 class Jacobi(object):
@@ -9,7 +10,32 @@ class Jacobi(object):
         self.commutator_map = commutator_map
 
     def get(self, commutator):
-        return self.commutator_map[commutator]
+        v1 = Vector(commutator.x.value)
+        v2 = Vector(commutator.y.value)
+        v3 = Vector(commutator.z.value)
+        return self.commutator_map[Commutator(v1, v2, v3)]
+
+    def calculate_value(self, u, v, commutator):
+        values_list = self.get(commutator)
+        if not values_list:
+            return []
+        commutators = [Commutator(u, v, w) for w in values_list]
+        result_list = []
+        for c in commutators:
+            vector_multipliers = [m for ms in [c.x.ms, c.y.ms, c.z.ms] for m in ms]
+            vectors_sign = c.x.sign * c.y.sign * c.z.sign
+            formatted_commutator = Commutator(Vector(c.x.value), Vector(c.y.value), Vector(c.z.value),
+                                              sign=c.sign, multipliers=c.multipliers)
+            flipped_commutator = formatted_commutator.flip()
+            flipped_commutator.sign *= vectors_sign
+            flipped_commutator.multipliers.extend(vector_multipliers)
+            _c = flipped_commutator
+
+            sum_vectors = self.get(_c)
+            if not sum_vectors:
+                continue
+            result_list.extend([Vector(v.value, sign=_c.sign*v.sign, ms=_c.multipliers+v.ms) for v in sum_vectors])
+        return result_list
 
     def right(self, u, v, x, y, z):
         """

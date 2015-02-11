@@ -1,10 +1,10 @@
 import itertools
-from vector import Vector as Vec
+from vector import Vector
 
 
 class Commutator(object):
 
-    def __init__(self, x, y, z, sign=1):
+    def __init__(self, x, y, z, sign=1, multipliers=None):
         """
         :type x: Vec
         :type y: Vec
@@ -15,18 +15,23 @@ class Commutator(object):
         self.y = y
         self.z = z
         self.sign = sign
-        self.values_list = []
+        self.multipliers = [m for m in multipliers] if multipliers else []
+        self._values_list = None
 
     def __eq__(self, other):
+        if not isinstance(other, Commutator):
+            raise TypeError("Invalid comparison for type %s (%s)" % (type(other), other))
         return all((
             self.x == other.x,
             self.y == other.y,
             self.z == other.z,
+            self.multipliers == other.multipliers,
             self.sign == other.sign,
         ))
 
     def __hash__(self):
-        return hash("%s%s%s%s" % (self.sign, self.x, self.y, self.z))
+        multipliers = ''.join(sorted([m for m in self.multipliers]))
+        return hash("%s%s%s%s%s" % (self.sign, multipliers, self.x.value, self.y.value, self.z.value))
 
     def __str__(self):
         if self.sign == 1:
@@ -35,13 +40,14 @@ class Commutator(object):
             sign = "-"
         else:
             raise RuntimeError("Invalid sign: %s" % self.sign)
-        return "%s[%s, %s, %s]" % (sign, self.x, self.y, self.z)
+        multiplier = "%s*" % ''.join(sorted(self.multipliers)) if self.multipliers else ""
+        return "%s%s[%s, %s, %s]" % (sign, multiplier, self.x, self.y, self.z)
 
     def __repr__(self):
         return str(self)
 
     def as_string(self):
-        values = '0' if not self.values_list else ' '.join([str(v) for v in self.values_list])
+        values = '0' if not self._values_list else ' '.join([str(v) for v in self._values_list])
         return "[%s, %s, %s] = %s" % (self.x, self.y, self.z, values)
 
     @classmethod
@@ -53,7 +59,7 @@ class Commutator(object):
         return l
 
     def set_values_list(self, values_list):
-        self.values_list = values_list
+        self._values_list = values_list
 
     def __abs__(self):
         return (self.x.parity + self.y.parity + self.z.parity) % 2
@@ -104,7 +110,7 @@ class Commutator(object):
         xy = abs(self.x)*abs(self.y)
         xz = abs(self.x)*abs(self.z)
         yz = abs(self.y)*abs(self.z)
-        sign = 1
+        sign = self.sign
         if x <= y <= z:
             pass
         elif y <= x <= z:
@@ -125,22 +131,22 @@ class Commutator(object):
         else:
             raise RuntimeError("Invalid flip for: {}".format(self))
 
-        return Commutator(_x, _y, _z), sign
+        return Commutator(_x, _y, _z, sign=sign, multipliers=self.multipliers)
 
 
 def _test_flip():
     l1, l2, l3, l4, l5, l6, l7, l8, l9, l10 = [], [], [], [], [], [], [], [], [], []
     for a, b, c in itertools.permutations([1, 2, 3]):
-        l1.append((Vec("e%d" % a), Vec("e%d" % b), Vec("e%d" % c)))
-        l2.append((Vec("f%d" % a), Vec("f%d" % b), Vec("f%d" % c)))
-        l3.append((Vec("e%d" % a), Vec("f%d" % b), Vec("f%d" % c)))
-        l4.append((Vec("e%d" % a), Vec("e%d" % b), Vec("f%d" % c)))
-        l5.append((Vec("e%d" % a), Vec("f%d" % b), Vec("f%d" % c)))
-        l6.append((Vec("e%d" % a), Vec("e%d" % b), Vec("f%d" % c)))
-        l7.append((Vec("f%d" % a), Vec("e%d" % b), Vec("e%d" % c)))
-        l8.append((Vec("f%d" % a), Vec("f%d" % b), Vec("e%d" % c)))
-        l9.append((Vec("f%d" % a), Vec("e%d" % b), Vec("f%d" % c)))
-        l10.append((Vec("f%d" % a), Vec("f%d" % b), Vec("f%d" % c)))
+        l1.append((Vector("e%d" % a), Vector("e%d" % b), Vector("e%d" % c)))
+        l2.append((Vector("f%d" % a), Vector("f%d" % b), Vector("f%d" % c)))
+        l3.append((Vector("e%d" % a), Vector("f%d" % b), Vector("f%d" % c)))
+        l4.append((Vector("e%d" % a), Vector("e%d" % b), Vector("f%d" % c)))
+        l5.append((Vector("e%d" % a), Vector("f%d" % b), Vector("f%d" % c)))
+        l6.append((Vector("e%d" % a), Vector("e%d" % b), Vector("f%d" % c)))
+        l7.append((Vector("f%d" % a), Vector("e%d" % b), Vector("e%d" % c)))
+        l8.append((Vector("f%d" % a), Vector("f%d" % b), Vector("e%d" % c)))
+        l9.append((Vector("f%d" % a), Vector("e%d" % b), Vector("f%d" % c)))
+        l10.append((Vector("f%d" % a), Vector("f%d" % b), Vector("f%d" % c)))
     for i, l in enumerate([l1, l2, l3, l4, l5, l6, l7, l8, l9, l10]):
         print("l%d:" % (i+1))
         for v1, v2, v3 in l:
