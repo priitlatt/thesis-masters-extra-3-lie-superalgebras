@@ -1,15 +1,15 @@
 from commutator import Commutator
 
+
 class Jacobi(object):
 
-    def __init__(self, evens, odds, map):
+    def __init__(self, evens, odds, commutator_map):
         self.evens = evens
         self.odds = odds
-        self.commutator_map = map
+        self.commutator_map = commutator_map
 
     def get(self, commutator):
-        key = commutator.x.value + commutator.y.value + commutator.z.value
-        return self.commutator_map[key]
+        return self.commutator_map[commutator]
 
     def right(self, u, v, x, y, z):
         """

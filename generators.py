@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import itertools
 import sys
 
@@ -18,9 +19,8 @@ else:
 
 even_count = 0
 odd_count = 0
-commutator_map = dict()
+commutator_map = OrderedDict()
 
-multipliers = []
 evens = tuple()
 odds = tuple()
 basis = tuple()
@@ -30,7 +30,7 @@ tex_output = []
 
 
 def init_basis_and_commutators():
-    global evens, odds, basis, commutators, multipliers
+    global evens, odds, basis, commutators, odd_count, even_count
 
     evens = tuple([Vec('e%d' % (i + 1)) for i in range(EVEN_COUNT)])
     odds = tuple([Vec('f%d' % (i + 1)) for i in range(ODD_COUNT)])
@@ -38,51 +38,37 @@ def init_basis_and_commutators():
 
     commutators = tuple(Commutator.get_commutators(basis))
     for c in commutators:
-        multipliers = add(c)
-        if not any(multipliers):
-            print(c, '=', 0)
+        multiplier_count = len(odds) if c.is_odd() else len(evens)
+        if c.is_zero():
+            value = []
+        elif c.is_odd():
+            multipliers = ["m_%d" % (odd_count + i+1) for i in range(multiplier_count)]
+            odd_count += multiplier_count
+            value = [Vec('f%d' % (i + 1), m) for i, m in enumerate(multipliers)]
         else:
-            multipliers = filter(None, multipliers)
-            vectors = evens if c.is_even() else odds
-            o = str(c) + ' = ' + ' + '.join(("%s %s" % (m, b) for m, b in zip(multipliers, vectors) if m))
-            print(o)
-            tex_output.append(r'\item $%s$' % o)
-    print('\n------------------------------\n')
+            multipliers = ["l_%d" % (even_count + i+1) for i in range(multiplier_count)]
+            even_count += multiplier_count
+            value = [Vec('e%d' % (i + 1), m) for i, m in enumerate(multipliers)]
+
+        c.set_values_list(value)
+        commutator_map[c] = value
 
 
-def add(commutator):
-    global odd_count, even_count
-    multiplier_count = len(odds) if commutator.is_odd() else len(evens)
-    if commutator.is_zero():
-        multiplier_list = ['' for _ in range(multiplier_count)]
-    elif commutator.is_odd():
-        multiplier_list = ["m_%d" % (odd_count + i+1) for i in range(multiplier_count)]
-        odd_count += len(multiplier_list)
-        # odd_count += 1
-        # multiplier_list = ["m_%d^%d" % (odd_count, i+1) for i in range(multiplier_count)]
-    else:
-        multiplier_list = ["l_%d" % (even_count + i+1) for i in range(multiplier_count)]
-        even_count += len(multiplier_list)
-        # even_count += 1
-        # multiplier_list = ["l_%d^%d" % (even_count, i+1) for i in range(multiplier_count)]
-    key = commutator.x.value + commutator.y.value + commutator.z.value
-    commutator_map[key] = multiplier_list
-    return multiplier_list
-
-
-def create_equations(commutators):
+def create_equations():
     jacobi = Jacobi(evens, odds, commutator_map)
     trim = lambda s: s.replace('_', '')
     equations = []
     for c in commutators:
-        # if c.zero:
-        #     continue
         for b1, b2 in itertools.combinations_with_replacement(basis, 2):
+            print(b1)
+            print(b2)
+            print()
+            continue
             l = jacobi.left(b1, b2, c.x, c.y, c.z)
             r = jacobi.right(b1, b2, c.x, c.y, c.z)
             if not r and not l:
                 continue
-            add_tex(tex_output, c, l, r, b1, b2)
+            # add_tex(tex_output, c, l, r, b1, b2)
 
             for b in basis:
                 l_side = [(sign, k1, k2) for sign, k1, k2, b_ in l if b_ == str(b)]
@@ -118,15 +104,12 @@ def create_equations(commutators):
 
 
 init_basis_and_commutators()
-equations = create_equations(commutators)
+equations_list = create_equations()
 
-print(evens)
-print(odds)
-print(commutators)
+for commutator in commutator_map:
+    print(commutator.as_string())
 
-print(commutator_map)
-
-for counter, eq in enumerate(equations):
+for counter, eq in enumerate(equations_list):
     print("%d) %s" % (counter, eq))
 
 # script_file, output_file = mh.create_script(

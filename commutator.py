@@ -16,6 +16,28 @@ class Commutator(object):
         self.z = z
         self.sign = sign
         self.all = [x, y, z]
+        self.values_list = []
+
+    def __eq__(self, other):
+        return all((
+            self.x == other.x,
+            self.y == other.y,
+            self.z == other.z,
+            self.sign == other.sign,
+        ))
+
+    def __hash__(self):
+        return hash("%s%s%s%s" % (self.sign, self.x, self.y, self.z))
+
+    def __str__(self):
+        return "[%s, %s, %s]" % (self.x, self.y, self.z)
+
+    def __repr__(self):
+        return str(self)
+
+    def as_string(self):
+        values = '0' if not self.values_list else ' '.join([str(v) for v in self.values_list])
+        return "[%s, %s, %s] = %s" % (self.x, self.y, self.z, values)
 
     @classmethod
     def get_commutators(cls, basis):
@@ -24,6 +46,9 @@ class Commutator(object):
             x, y, z = el
             l.append(Commutator(x, y, z))
         return l
+
+    def set_values_list(self, values_list):
+        self.values_list = values_list
 
     @property
     def parity(self):
@@ -120,9 +145,3 @@ class Commutator(object):
             raise RuntimeError("Invalid flip: {}".format(self))
 
         return Commutator(_x, _y, _z), sign
-
-    def __str__(self):
-        return "[%s, %s, %s]" % (self.x, self.y, self.z)
-
-    def __repr__(self):
-        return str(self)
