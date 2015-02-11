@@ -30,39 +30,38 @@ class Jacobi(object):
         c1 = [Commutator(b, y, z).flip() for b in basis]
         for m1, t1 in zip(self.get(_c1), c1):
             c, s = t1
-            # print c
+            # print(c)
             for m2, b in zip(self.get(c), self.evens if c.even else self.odds):
                 if m1 and m2:
                     sign = c1_s * _c1_s * s
                     result.append(('+' if sign > 0 else '-', m1, m2, str(b)))
-                    # print '+' if sign > 0 else '-', m1, m2, b
+                    # print('+' if sign > 0 else '-', m1, m2, b)
 
         _c2, _c2_s = Commutator(u, v, y).flip()
         basis = self.evens if _c2.even else self.odds
         c2 = [Commutator(x, b, z).flip() for b in basis]
         for m1, t1 in zip(self.get(_c2), c2):
             c, s = t1
-            # print c
+            # print(c)
             for m2, b in zip(self.get(c), self.evens if c.even else self.odds):
                 if m1 and m2:
                     sign = c2_s * _c2_s * s
                     result.append(('+' if sign > 0 else '-', m1, m2, str(b)))
-                    # print '+' if sign > 0 else '-', m1, m2, b
+                    # print('+' if sign > 0 else '-', m1, m2, b)
 
         _c3, _c3_s = Commutator(u, v, z).flip()
         basis = self.evens if _c3.even else self.odds
         c3 = [Commutator(x, y, b).flip() for b in basis]
         for m1, t1 in zip(self.get(_c3), c3):
             c, s = t1
-            # print c
+            # print(c)
             for m2, b in zip(self.get(c), self.evens if c.even else self.odds):
                 if m1 and m2:
                     sign = c3_s * _c3_s * s
                     result.append(('+' if sign > 0 else '-', m1, m2, str(b)))
-                    # print '+' if sign > 0 else '-', m1, m2, b
+                    # print('+' if sign > 0 else '-', m1, m2, b)
 
         return result
-
 
     def left(self, u, v, x, y, z):
         """
@@ -81,10 +80,10 @@ class Jacobi(object):
         c = [Commutator(u, v, b).flip() for b in basis]
         for m1, t1 in zip(self.get(_c), c):
             c, s = t1
-            # print c
+            # print(c)
             for m2, b in zip(self.get(c), self.evens if c.even else self.odds):
                 if m1 and m2:
                     sign = _c_s * s
                     result.append(('+' if sign > 0 else '-', m1, m2, str(b)))
-                    # print '+' if sign > 0 else '-', m1, m2, b
+                    # print('+' if sign > 0 else '-', m1, m2, b)
         return result

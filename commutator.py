@@ -3,6 +3,7 @@ from vector import Vector as Vec
 
 
 class Commutator(object):
+
     def __init__(self, x, y, z, sign=1):
         """
         :type x: Vec
@@ -65,8 +66,8 @@ class Commutator(object):
     def zero(self):
         def compare_elements(other):
             return self.x == other.x and \
-                   self.y == other.y and \
-                   self.z == other.z
+                self.y == other.y and \
+                self.z == other.z
 
         for other in self.permutations():
             if self.sign != other.sign and compare_elements(other):
@@ -84,7 +85,6 @@ class Commutator(object):
         index = self._sc_index()
         ans_list = ["c(%s; %s)%s" % (index, b.index, b) for b in basis_els]
         return ' + '.join(ans_list)
-
 
     def to_vectors(self, evens, odds):
         if self.zero:
@@ -123,7 +123,7 @@ class Commutator(object):
             sign = (-1) ** (xz + yz)
             _x, _y, _z = Vec(self.z.value), Vec(self.x.value), Vec(self.y.value)
         else:
-            print 'ERRAR!!!', self
+            raise RuntimeError("Invalid flip: {}".format(self))
 
         return Commutator(_x, _y, _z), sign
 

@@ -12,7 +12,7 @@ if len(sys.argv) == 3:
     EVEN_COUNT = int(sys.argv[1])
     ODD_COUNT = int(sys.argv[2])
 else:
-    EVEN_COUNT = 2
+    EVEN_COUNT = 1
     ODD_COUNT = 1
 
 
@@ -24,7 +24,7 @@ multipliers = []
 evens = None
 odds = None
 basis = None
-commutators  = None
+commutators = None
 
 tex_output = []
 
@@ -40,14 +40,14 @@ def init_basis_and_commutators():
     for c in commutators:
         multipliers = add(c)
         if not any(multipliers):
-             print c, '=', 0
+             print(c, '=', 0)
         else:
             multipliers += [mult for mult in multipliers if mult]
             basis = evens if c.even else odds
             o = str(c) + ' = ' + ' + '.join(("%s %s" % (m, b) for m, b in zip(multipliers, basis) if m))
-            print o
+            print(o)
             tex_output.append(r'\item $%s$' % o)
-    print '\n------------------------------\n'
+    print('\n------------------------------\n')
     commutators = tuple(commutators)
 
 
@@ -122,9 +122,9 @@ init_basis_and_commutators()
 equations = create_equations(commutators)
 
 for i, eq in enumerate(equations):
-    print i, eq
+    print(i, eq)
 
-script_file, output_file = mh.create_script(
-    equations, multipliers, EVEN_COUNT, ODD_COUNT)
-create_tex(tex_output, EVEN_COUNT, ODD_COUNT)
-mh.run_script(script_file)
+# script_file, output_file = mh.create_script(
+#     equations, multipliers, EVEN_COUNT, ODD_COUNT)
+# create_tex(tex_output, EVEN_COUNT, ODD_COUNT)
+# mh.run_script(script_file)

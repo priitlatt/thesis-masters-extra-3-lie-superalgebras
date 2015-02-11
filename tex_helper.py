@@ -9,6 +9,7 @@ TEX_TEMPLATE = r"""\documentclass[12pt]{{article}}
 \end{{document}}
 """
 
+
 def create_tex(equations_list, even_count, odd_count):
     file_prefix = '__combinations_%s_%s__' % (even_count, odd_count)
     s = ""
@@ -28,6 +29,6 @@ def create_tex(equations_list, even_count, odd_count):
 def add_tex(output_list, c, l, r, b1, b2):
     l = [' '.join(el) for el in l]
     r = [' '.join(el) for el in r]
-    # print '[', b1, b2, c, ']', '=', ' '.join(r), '\n'
+    # print('[', b1, b2, c, ']', '=', ' '.join(r), '\n')
     o = r'\left[%s, %s, %s \right] \\ %s = %s' % (b1, b2, c, ' '.join(l) or 0, ' '.join(r) or 0)
     output_list.append('\item $%s$' % o)
