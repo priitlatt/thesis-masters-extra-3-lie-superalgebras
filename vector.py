@@ -11,18 +11,31 @@ class Vector(object):
         self.sign = sign
 
     def __str__(self):
-        sign = "" if self.sign == 1 else "-"
-        ms = ''.join(self.ms)
-        return "%s%s%s" % (sign, ms, self.value)
+        s = "+" if self.sign == 1 else "-"
+        if self.ms:
+            ms = ''.join(sorted(self.ms))
+            s += "%s*" % ms
+        return "%s%s_%s" % (s, self.value[0], self.value[1:])
 
     def __repr__(self):
         return str(self)
+
+    def __eq__(self, other):
+        if not isinstance(other, Vector):
+            raise TypeError("Invalid type for comparison: %s" % type(other))
+        return all((self.value == other.value, self.ms == other.ms, self.sign == other.sign))
+
+    def __hash__(self):
+        return hash("%s %s %s" % (self.sign, ''.join(sorted(self.ms)), self.value))
 
     def __abs__(self):
         return 1 if self._is_odd() else 0
 
     def copy(self):
         return Vector(self.value, self.ms, self.sign)
+
+    def multiply(self, *scalars):
+        self.ms.extend([str(scalar) for scalar in scalars])
 
     @property
     def parity(self):
@@ -78,15 +91,3 @@ class Vector(object):
             return self.value[1:]
         else:
             return "%s'" % self.value[1:]
-
-    def __str__(self):
-        s = "+" if self.sign == 1 else "-"
-        if self.ms:
-            ms = ''.join(sorted(self.ms))
-            s += "%s*" % ms
-        return "%s%s_%s" % (s, self.value[0], self.value[1:])
-
-    def __eq__(self, other):
-        if not isinstance(other, Vector):
-            raise TypeError("Invalid type for comparison: %s" % type(other))
-        return all((self.value == other.value, self.ms == other.ms, self.sign == other.sign))
