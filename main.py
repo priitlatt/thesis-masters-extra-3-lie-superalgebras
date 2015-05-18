@@ -1,4 +1,6 @@
-from collections import Counter, OrderedDict
+from __future__ import print_function
+
+from collections import Counter, OrderedDict, defaultdict
 from itertools import combinations_with_replacement
 import sys
 
@@ -11,7 +13,7 @@ if len(sys.argv) == 3:
     EVEN_COUNT = int(sys.argv[1])
     ODD_COUNT = int(sys.argv[2])
 else:
-    EVEN_COUNT = 2
+    EVEN_COUNT = 1
     ODD_COUNT = 1
 
 
@@ -55,13 +57,13 @@ def init_basis_and_commutators():
 def create_equations():
     def remove_duplicates(vectors):
         without_duplicates = []
-        for v, count in Counter(vectors).items():
+        for v, count in Counter([vec.copy() for vec in vectors]).items():
             if count > 1:
                 v.multiply(count)
             without_duplicates.append(v)
         return without_duplicates
 
-    to_str = lambda ls: ' '.join(map(str, remove_duplicates(ls))) or '0'
+    to_str = lambda ls: ' '.join([str(ve) for ve in remove_duplicates(ls)]) or '0'
 
     jacobi = Jacobi(evens, odds, commutator_map)
     equations = []
@@ -75,12 +77,52 @@ def create_equations():
 
             print("%d) [%s, %s, %s]" % (i, b1, b2, c))
             # print("%s = %s" % (identity_values, calculated_values))
+            multipliers_map = defaultdict(list)
+            for v in calculated_values:
+                multipliers_map[v.value].append(v.copy())
+            for v in identity_values:
+                multipliers_map[v.value].append(v.copy(invert=True))
 
             print("%s = %s" % (to_str(identity_values), to_str(calculated_values)))
+
+            for value, eqs in multipliers_map.items():
+                eqs_string = ' '.join([v.get_ms_string() for v in eqs])
+                print("%s: %s = 0" % (value, eqs_string.lstrip('+')))
+                equations.append(eqs)
             print()
             i += 1
 
     return equations
+
+
+def to_mathematica(equations):
+    base_string = "Solve[{%s}, {%s}, Complexes]"
+
+    eqs_string = ""
+    for eqs in equations:
+        eq_string = ' '.join([v.get_ms_string() for v in eqs])
+        eqs_string += "%s == 0, " % eq_string.lstrip('+').replace('_', '')
+    variables_string = ""
+    for i in range(1, odd_count+1):
+        variables_string += "m%d, " % i
+    for i in range(1, even_count+1):
+        variables_string += "l%d, " % i
+    return base_string % (eqs_string[:-2], variables_string[:-2])
+
+
+def to_tex(equations):
+    base_string = "\\begin{align*}\n%s\end{align*}"
+    eqs_string = ""
+    for eqs in equations:
+        eq_string = ' '.join([v.get_ms_string(tex=True) for v in eqs])
+        eqs_string += "    %s = 0, \\\\\n" % eq_string.lstrip('+')
+    return base_string % eqs_string
+
+
+def print_equations(equations):
+    for eqs in equations:
+        s = ' '.join([v.get_ms_string() for v in eqs])
+        print("%s = 0" % s.lstrip('+'))
 
 
 def main():
@@ -90,7 +132,10 @@ def main():
         print(commutator.as_string())
     print()
 
-    create_equations()
+    equations = create_equations()
+    print_equations(equations)
+    # print(to_tex(equations))
+    print("\nMathematica code:\n%s" % to_mathematica(equations))
 
 if __name__ == '__main__':
     main()

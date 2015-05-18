@@ -17,13 +17,28 @@ class Vector(object):
             s += "%s*" % ms
         return "%s%s_%s" % (s, self.value[0], self.value[1:])
 
+    def get_ms_string(self, tex=False):
+        def to_tex(m):
+            if tex:
+                return "%s_{%s}" % tuple(m.split('_')) if '_' in m else m
+            return m
+        s = "+" if self.sign == 1 else "-"
+        if self.ms:
+            multiply_sign = r' \cdot ' if tex else '*'
+            s += multiply_sign.join(sorted([to_tex(m) for m in self.ms]))
+        return s
+
     def __repr__(self):
         return str(self)
 
     def __eq__(self, other):
         if not isinstance(other, Vector):
             raise TypeError("Invalid type for comparison: %s" % type(other))
-        return all((self.value == other.value, self.ms == other.ms, self.sign == other.sign))
+        return all((
+            self.value == other.value,
+            sorted(self.ms) == sorted(other.ms),
+            self.sign == other.sign
+        ))
 
     def __hash__(self):
         return hash("%s %s %s" % (self.sign, ''.join(sorted(self.ms)), self.value))
@@ -31,11 +46,20 @@ class Vector(object):
     def __abs__(self):
         return 1 if self._is_odd() else 0
 
-    def copy(self):
-        return Vector(self.value, self.ms, self.sign)
+    def copy(self, invert=False):
+        sign = -1*self.sign if invert else self.sign
+        return Vector(self.value, self.ms, sign)
 
-    def multiply(self, *scalars):
-        self.ms.extend([str(scalar) for scalar in scalars])
+    def multiply(self, digit):
+        if self.ms and self.ms[0].isdigit():
+            self.ms[0] = str(int(self.ms)*digit)
+        else:
+            self.ms = [str(digit)] + self.ms
+
+    def get_multipliers(self):
+        if self.ms and self.ms[0].isdigit():
+            return self.sign*int(self.ms[0]), self.ms[1:]
+        return self.sign, self.ms
 
     @property
     def parity(self):
