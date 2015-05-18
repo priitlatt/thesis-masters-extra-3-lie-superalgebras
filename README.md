@@ -1,4 +1,4 @@
 super-lie-algebras
 ==================
 
-Script that calculates for given super Lie algebra basis dimensions (odd and even part) all possible generators relations
+Script that generates for given finite dimensional ternary Lie superalgebra all possible generator relations.
