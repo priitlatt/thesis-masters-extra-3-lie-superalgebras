@@ -110,9 +110,8 @@ class Commutator(object):
         xy = abs(self.x)*abs(self.y)
         xz = abs(self.x)*abs(self.z)
         yz = abs(self.y)*abs(self.z)
-        sign = self.sign
         if x <= y <= z:
-            pass
+            sign = 1
         elif y <= x <= z:
             sign = -(-1) ** xy
             _x, _y = _y, _x
@@ -130,7 +129,7 @@ class Commutator(object):
             _x, _y, _z = _z, _x, _y
         else:
             raise RuntimeError("Invalid flip for: {}".format(self))
-
+        sign *= self.sign
         return Commutator(_x, _y, _z, sign=sign, multipliers=self.multipliers)
 
 

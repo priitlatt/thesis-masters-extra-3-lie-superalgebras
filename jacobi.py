@@ -13,48 +13,60 @@ class Jacobi(object):
         v1 = Vector(commutator.x.value)
         v2 = Vector(commutator.y.value)
         v3 = Vector(commutator.z.value)
-        return self.commutator_map[Commutator(v1, v2, v3)]
+        invert = commutator.sign == -1
+        return [v.copy(invert=invert) for v in self.commutator_map[Commutator(v1, v2, v3)]]
 
     def _find_values(self, commutators):
         results_list = []
         for c in commutators:
-            vector_multipliers = [m for ms in [c.x.ms, c.y.ms, c.z.ms] for m in ms]
+            vector_multipliers = c.x.ms + c.y.ms + c.z.ms
             vectors_sign = c.x.sign * c.y.sign * c.z.sign
-            formatted_commutator = Commutator(
+            commutator = Commutator(
                 Vector(c.x.value), Vector(c.y.value), Vector(c.z.value),
-                sign=c.sign, multipliers=c.multipliers)
-            flipped_commutator = formatted_commutator.flip()
-            flipped_commutator.sign *= vectors_sign
-            flipped_commutator.multipliers.extend(vector_multipliers)
-            fc = flipped_commutator
-
-            sum_vectors = self.get(fc)
-            results_list.extend(
-                [Vector(v.value, sign=fc.sign*v.sign, ms=fc.multipliers+v.ms) for v in sum_vectors]
+                sign=c.sign*vectors_sign,
+                multipliers=c.multipliers+vector_multipliers
             )
+            commutator = commutator.flip()
+            for v in self.get(commutator):
+                v.ms += commutator.multipliers
+                results_list.append(v)
         return results_list
 
-    def calculate_value(self, u, v, commutator):
-        values_list = self.get(commutator)
-        commutators = [Commutator(u, v, w) for w in values_list]
+    def calculate_value(self, y1, y2, commutator):
+        commutators = [Commutator(y1, y2, v) for v in self.get(commutator)]
         return self._find_values(commutators)
 
-    def calculate_identity_value(self, u, v, commutator):
+    def calculate_identity_value(self, y1, y2, commutator):
         """
         Returns right hand side of Jacobi identity of given vectors
-
-                           _c1               _c2               _c3
-        [u,v,[x,y,z]] = [[u,v,x],y,z] + [x,[u,v,y],z] + [x,y,[u,v,z]]
-                              c1              c2              c3
+        [y1, y2, [x1, x2, x3]] =
+            [[y1, y2, x1], x2, x3] +
+            (-1)^{|x1|(|y1|+|y2|)} [x1, [y1, y2, x2], x3] +
+            (-1)^{(|x1|+|x2|)(|y1|+|y2|)} [x1, x2, [y1, y2, x3]]
         """
-        x, y, z = commutator.x, commutator.y, commutator.z
-        left_inner = Commutator(u, v, x).flip()
-        middle_inner = Commutator(u, v, y).flip()
-        right_inner = Commutator(u, v, z).flip()
-        left_commutators = [Commutator(w, y, z) for w in self.get(left_inner)]
-        middle_commutators = [Commutator(x, w, z) for w in self.get(middle_inner)]
-        right_commutators = [Commutator(x, y, w) for w in self.get(right_inner)]
+        x1, x2, x3 = commutator.x, commutator.y, commutator.z
+        if any([v.ms for v in (x1, x2, x3, y1, y2)]):
+            raise ValueError("One of %s has multipliers" % [x1, x2, x3, y1, y2])
+        elif commutator.sign != 1:
+            raise ValueError("Invalid commutator with negative sign: %s" % commutator)
+        y_sign = abs(y1) + abs(y2)
+        middle_sign = (-1)**(abs(x1)*y_sign)
+        right_sign = (-1)**((abs(x1) + abs(x2))*y_sign)
+        left_inner = Commutator(y1, y2, x1).flip()
+        middle_inner = Commutator(y1, y2, x2, sign=middle_sign).flip()
+        right_inner = Commutator(y1, y2, x3, sign=right_sign).flip()
 
-        return self._find_values(left_commutators) +\
+        # print("[{y1}, {y2}, [{x1}, {x2}, {x3}]] = [{li}, {x2}, {x3}] + [{x1}, {mi}, {x3}] + [{x1}, {x2}, {ri}]".format(
+        #     x1=x1, x2=x2, x3=x3, y1=y1, y2=y2, li=left_inner, ri=right_inner, mi=middle_inner
+        # ))
+
+        left_commutators = [Commutator(v, x2, x3) for v in self.get(left_inner)]
+        middle_commutators = [Commutator(x1, v, x3) for v in self.get(middle_inner)]
+        right_commutators = [Commutator(x1, x2, v) for v in self.get(right_inner)]
+
+        vecs = self._find_values(left_commutators) +\
             self._find_values(middle_commutators) +\
             self._find_values(right_commutators)
+        # print(vecs)
+        return vecs
+

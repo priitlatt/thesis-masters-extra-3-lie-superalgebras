@@ -44,11 +44,11 @@ def init_basis_and_commutators():
         elif c.is_odd():
             multipliers = ["m_%d" % (odd_count + i+1) for i in range(multiplier_count)]
             odd_count += multiplier_count
-            values = [Vector('f%d' % (i + 1), [m]) for i, m in enumerate(multipliers)]
+            values = [Vector('f%d' % i, [m]) for i, m in enumerate(multipliers, 1)]
         else:
             multipliers = ["l_%d" % (even_count + i+1) for i in range(multiplier_count)]
             even_count += multiplier_count
-            values = [Vector('e%d' % (i + 1), [m]) for i, m in enumerate(multipliers)]
+            values = [Vector('e%d' % i, [m]) for i, m in enumerate(multipliers, 1)]
 
         c.set_values_list(values)
         commutator_map[c] = values
@@ -69,6 +69,8 @@ def create_equations():
     equations = []
     i = 1
     for c in commutators:
+        if not commutator_map[c]:
+            continue
         for b1, b2 in combinations_with_replacement(basis, 2):
             calculated_values = jacobi.calculate_value(b1, b2, c)
             identity_values = jacobi.calculate_identity_value(b1, b2, c)
@@ -76,18 +78,17 @@ def create_equations():
                 continue
 
             print("%d) [%s, %s, %s]" % (i, b1, b2, c))
-            # print("%s = %s" % (identity_values, calculated_values))
-            multipliers_map = defaultdict(list)
-            for v in calculated_values:
-                multipliers_map[v.value].append(v.copy())
-            for v in identity_values:
-                multipliers_map[v.value].append(v.copy(invert=True))
 
+            multipliers_map = defaultdict(list)
+            for v in identity_values:
+                multipliers_map[v.value].append(v.copy())
+            for v in calculated_values:
+                multipliers_map[v.value].append(v.copy(invert=True))
             print("%s = %s" % (to_str(identity_values), to_str(calculated_values)))
 
             for value, eqs in multipliers_map.items():
-                eqs_string = ' '.join([v.get_ms_string() for v in eqs])
-                print("%s: %s = 0" % (value, eqs_string.lstrip('+')))
+                # eqs_string = ' '.join([v.get_ms_string() for v in eqs])
+                # print("%s: %s = 0" % (value, eqs_string.lstrip('+')))
                 equations.append(eqs)
             print()
             i += 1
