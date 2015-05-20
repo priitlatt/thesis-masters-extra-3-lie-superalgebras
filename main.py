@@ -97,7 +97,7 @@ def create_equations():
 
 
 def to_mathematica(equations):
-    base_string = "Solve[{%s}, {%s}, Complexes]"
+    base_string = "DeleteDuplicates[Solve[{%s}, {%s}, Complexes]]"
 
     eqs_string = ""
     for eqs in equations:
@@ -121,9 +121,9 @@ def to_tex(equations):
 
 
 def print_equations(equations):
-    for eqs in equations:
+    for i, eqs in enumerate(equations, 1):
         s = ' '.join([v.get_ms_string() for v in eqs])
-        print("%s = 0" % s.lstrip('+'))
+        print("%d) %s = 0" % (i, s.lstrip('+')))
 
 
 def main():
